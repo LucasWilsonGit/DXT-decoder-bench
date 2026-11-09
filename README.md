@@ -147,3 +147,20 @@ This final part is not really relevant to anything except my own data here, I wa
 My simple bid/ask {price, qty} levels is likely a bit of an ideal case for go-json against sonic here, backend bound is 18.6% on sonic vs 9.8% for go-json. The data is definitely in L1 cache, so this is probably dependent instruction chains. I cba to try and find out when I'm not being paid to.
 
 Something interesting I found as I did end up trying this on book data from gate.io was that sonic suffers a lot when decoding structs which have more keys than what we care about decoding, go-json can end up being twice as fast.
+
+If I do not enforce go-json and sonic copying strings, and instead allow unsafe behaviour, then ofc, the performance sppeds up signficantly, but it is not really valid to compare like this to jsonv2 and jsonv2h, as working with this unsafe content means you need to be working with strings in your structs transitively like parsing them into fixed precision decimals.
+```
+┌─────────┬────────┬────────────┬─────────────┬────────────┬─────┬─────────┬─────────┬──────────┬──────────┬──────────┬──────┐
+│ decoder │ books  │   allocs   │ allocs/book │ bytes/book │ GCs │   p50   │   p90   │   p99    │  p99.9   │  p99.99  │ MB/s │
+├─────────┼────────┼────────────┼─────────────┼────────────┼─────┼─────────┼─────────┼──────────┼──────────┼──────────┼──────┤
+│ gojson  │ 32,000 │          8 │         0.0 │          2 │   0 │ 15.8 µs │ 17.1 µs │  18.5 µs │  23.7 µs │  30.8 µs │  994 │
+├─────────┼────────┼────────────┼─────────────┼────────────┼─────┼─────────┼─────────┼──────────┼──────────┼──────────┼──────┤
+│ sonic   │ 32,000 │          2 │         0.0 │          0 │   0 │ 16.7 µs │ 18.2 µs │  18.7 µs │  23.8 µs │  33.2 µs │  942 │
+├─────────┼────────┼────────────┼─────────────┼────────────┼─────┼─────────┼─────────┼──────────┼──────────┼──────────┼──────┤
+│ jsonv2  │ 32,000 │ 45,482,005 │     1,421.3 │     10,477 │ 141 │ 94.9 µs │ 97.8 µs │ 150.2 µs │ 241.5 µs │ 284.4 µs │  166 │
+├─────────┼────────┼────────────┼─────────────┼────────────┼─────┼─────────┼─────────┼──────────┼──────────┼──────────┼──────┤
+│ jsonv2h │ 32,000 │ 50,831,321 │     1,588.5 │     11,626 │ 153 │ 51.2 µs │ 54.6 µs │ 105.9 µs │ 153.3 µs │ 191.6 µs │  302 │
+└─────────┴────────┴────────────┴─────────────┴────────────┴─────┴─────────┴─────────┴──────────┴──────────┴──────────┴──────┘
+```
+
+A version of jsonv2h that does not copy strings drops to ~40us p50, ~76us p99.99. 
