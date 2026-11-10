@@ -16,9 +16,7 @@ To be consistent with json/v2, I have configured go-json and sonic to copy strin
 
 ```
 sudo systemd-run --uid=$USER --pty --same-dir --setenv=HOME=$HOME --setenv=PATH=$PATH -p CPUSchedulingPolicy=fifo -p CPUSchedulingPriority=99 ./bench.sh -- -copy
-```
 
-```
 ┌────────┬─────────┬──────────┬───────────┬────────────┬─────────┬────────┬────────┬──────────┬──────────┬──────────┬──────┐
 │ decoder│   books │   allocs │allocs/book│ bytes/book │ GCs     │  p50   │    p90 │      p99 │    p99.9 │   p99.99 │ MB/s │
 ├────────┼─────────┼──────────┼───────────┼────────────┼─────────┼────────┼────────┼──────────┼──────────┼──────────┼──────┤
@@ -139,7 +137,7 @@ Showing top 10 nodes out of 56
 ```
 
 
-If I do not enforce go-json and sonic copying strings, and instead allow unsafe behaviour, then ofc, the performance sppeds up signficantly, but it is not really valid to compare like this to jsonv2 and jsonv2h, as working with this unsafe content means you need to be working with strings in your structs transitively like parsing them into fixed precision decimals.
+If I do not enforce go-json and sonic copying strings, and instead allow unsafe behaviour, then the performance speeds up significantly, but it is not really valid to compare like this to jsonv2 and jsonv2h, as working with this unsafe content means you need to be working with strings in your structs transitively like parsing them into fixed precision decimals.
 
 ```
 ┌─────────┬────────┬────────────┬─────────────┬────────────┬─────┬─────────┬─────────┬──────────┬──────────┬──────────┬──────┐
